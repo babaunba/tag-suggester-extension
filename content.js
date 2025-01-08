@@ -9,6 +9,22 @@ function getIssueData() {
     };
 }
 
+function getSelectedLabels() {
+    const labelMenuItems = document.querySelectorAll("#labels-select-menu .js-filterable-issue-labels .select-menu-item");
+    let selectedLabels = [];
+
+    for (const menuItem of labelMenuItems) {
+        const isSelected = menuItem.getAttribute("aria-checked") === "true";
+        const labelName = menuItem.getAttribute("data-prio-filter-value");
+
+        if (isSelected) {
+            selectedLabels.push(labelName);
+        }
+    }
+
+    return selectedLabels;
+}
+
 function handleInputChange() {
     const issueData = getIssueData();
     console.log("Issue Data:", issueData);
@@ -45,4 +61,7 @@ window.addEventListener("load", () => {
     console.log("Setup ...");
     setupInputListeners();
     console.log("Setup ... [ok]");
+
+    const x = document.querySelectorAll('#labels-select-menu .select-menu-item');
+    console.log(x);
 });
