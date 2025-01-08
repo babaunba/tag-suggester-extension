@@ -1,12 +1,16 @@
 console.log("Start");
 
-function handleInputChange() {
+function getIssueData() {
     const issueTitle = document.getElementById('issue_title')?.value || '';
     const issueBody = document.getElementById('issue_body')?.value || '';
-    const issueData = {
+    return {
         title: issueTitle,
         body: issueBody
     };
+}
+
+function handleInputChange() {
+    const issueData = getIssueData();
     console.log("Issue Data:", issueData);
 }
 
