@@ -1,6 +1,35 @@
-console.log("Start");
+/* Constants */
 
-let suggestedLabels = [ "bug", "bug-1", "bug-2", "bug-3", "bug-4", "bug-5", "bug 1", "bug 1" ];
+const SUGGESTED_LABELS_CONTAINER_ID = "suggested-labels-container";
+
+/* Global state */
+
+let suggestedLabels = ["bug", "documentation"];
+
+/* Labels module */
+
+function __createLabelItem(name, callback) {
+    const element = document.createElement("div");
+    element.setAttribute("class", "suggested-labels__item");
+    element.innerText = name;
+    element.onclick = () => callback(name);
+
+    return element;
+}
+
+function createSuggestedLabelsContainer(names, callback) {
+    const suggestedLabelsContainer = document.createElement("div");
+    suggestedLabelsContainer.setAttribute("class", "suggested-labels");
+
+    for (const name of names) {
+        const item = __createLabelItem(name, callback);
+        suggestedLabelsContainer.appendChild(item);
+    }
+
+    return suggestedLabelsContainer;
+}
+
+/* Main */
 
 function getIssueData() {
     const issueTitle = document.getElementById('issue_title')?.value || '';
@@ -11,35 +40,47 @@ function getIssueData() {
     };
 }
 
-function getSelectedLabels() {
+/* Labels */
+
+function getLabelMenuItems() {
+    let menuItems = [];
     const labelMenuItems = document.querySelectorAll("#labels-select-menu .js-filterable-issue-labels .select-menu-item");
-    let selectedLabels = [];
 
     for (const menuItem of labelMenuItems) {
-        const isSelected = menuItem.getAttribute("aria-checked") === "true";
-        const labelName = menuItem.getAttribute("data-prio-filter-value");
+        menuItems.push({
+            name: menuItem.getAttribute("data-prio-filter-value"),
+            isSelected: menuItem.getAttribute("aria-checked") === "true",
+            element: menuItem,
+        });
+    }
 
-        if (isSelected) {
-            selectedLabels.push(labelName);
+    return menuItems;
+}
+
+function getActiveLabels() {
+    let selectedLabels = [];
+
+    for (const menuItem of getLabelMenuItems()) {
+        if (menuItem.isSelected) {
+            selectedLabels.push(menuItem.name);
         }
     }
 
     return selectedLabels;
 }
 
-function selectLabel(label) {
-    const selectedLabels = getSelectedLabels();
-    if (selectedLabels.includes(label)) return;
+function selectLabel(name) {
+    if (getActiveLabels().includes(name)) {
+        return;
+    }
 
-    const labelMenuItems = document.querySelectorAll("#labels-select-menu .js-filterable-issue-labels .select-menu-item");
+    const selectMenu = document.querySelector("#labels-select-menu summary");
 
-    for (const menuItem of labelMenuItems) {
-        const labelName = menuItem.getAttribute("data-prio-filter-value");
-
-        if (labelName === label) {
-            menuItem.click();
-            document.querySelector("#labels-select-menu summary").click()
-            document.querySelector("#labels-select-menu summary").click()
+    for (const menuItem of getLabelMenuItems()) {
+        if (menuItem.name === name) {
+            menuItem.element.click();
+            selectMenu.click();
+            selectMenu.click();
             return;
         }
     }
@@ -76,39 +117,17 @@ function setupInputListeners() {
     console.log("Setup input listeners... [ok]");
 }
 
-function createSuggestesLabelsContainer() {
-    const suggestedLabelsContainer = document.createElement("div");
-    suggestedLabelsContainer.setAttribute("class", "suggested-labels");
-    return suggestedLabelsContainer;
-}
+function getSuggestedNotActiveLabels() {
+    const activeLabels = getActiveLabels();
+    let result = [];
 
-function createSuggestedLabelItem(label) {
-    const item = document.createElement("div");
-    item.setAttribute("class", "suggested-labels__item");
-    item.innerText = label;
-    item.onclick = () => selectLabel(label);
-    return item;
-}
-
-function setLabels(container, labels) {
-    container.innerHTML = "";
-
-    for (const label of labels) {
-        const labelItem = createSuggestedLabelItem(label);
-        container.appendChild(labelItem);
-    }
-}
-
-function updateContainer(container, suggested, active) {
-    let suggestedNotActive = [];
-
-    for (const label of suggested) {
-        if (!active.includes(label)) {
-            suggestedNotActive.push(label);
+    for (const label of suggestedLabels) {
+        if (!activeLabels.includes(label)) {
+            result.push(label);
         }
     }
 
-    setLabels(container, suggestedNotActive);
+    return result;
 }
 
 function insertContainer(container) {
@@ -117,39 +136,32 @@ function insertContainer(container) {
     labelsSidebar.insertBefore(container, lastElement);
 }
 
+function initSuggestedLabelsContainer() {
+    const labels = getSuggestedNotActiveLabels();
+    const container = createSuggestedLabelsContainer(labels, selectLabel);
+    container.id = SUGGESTED_LABELS_CONTAINER_ID;
+    insertContainer(container);
+}
+
 const callback = (mutationsList, observer) => {
-    console.log("Something changed");
-
-    const container = document.getElementById("suggested-labels-container");
-    if (container) return;
-
+    if (document.getElementById(SUGGESTED_LABELS_CONTAINER_ID)) return;
     console.log("Container was deleted!");
+    initSuggestedLabelsContainer();
+};
 
-    const labelsContainer = createSuggestesLabelsContainer();
-    labelsContainer.id = "suggested-labels-container";
-    const activeLabel = getSelectedLabels();
+console.log("Start");
 
-    updateContainer(labelsContainer, suggestedLabels, activeLabel);
-    insertContainer(labelsContainer);
-  };
+window.addEventListener("load", () => {
+    console.log("Page loaded");
+    console.log("Setup ...");
+    setupInputListeners();
+    console.log("Setup ... [ok]");
 
+    console.log("Init container ...");
+    initSuggestedLabelsContainer();
 
-  const observer = new MutationObserver(callback);
-  
-  window.addEventListener("load", () => {
-      console.log("Page loaded");
-      console.log("Setup ...");
-      setupInputListeners();
-      console.log("Setup ... [ok]");
-      
-      const labelsContainer = createSuggestesLabelsContainer();
-      labelsContainer.id = "suggested-labels-container";
-      const activeLabel = getSelectedLabels();
-
-      setLabels(labelsContainer, suggestedLabels);
-      updateContainer(labelsContainer, suggestedLabels, activeLabel);
-      insertContainer(labelsContainer);
-
-      const labelsSidebar = document.querySelector('#new_issue');
-      observer.observe(labelsSidebar, { childList: true, subtree: true });
+    const observer = new MutationObserver(callback);
+    const labelsSidebar = document.querySelector('#new_issue');
+    observer.observe(labelsSidebar, { childList: true, subtree: true });
+    console.log("Init container ... [ok]");
 });
