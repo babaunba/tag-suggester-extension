@@ -10,6 +10,9 @@
             "matches": [
                 "https://github.com/*/*/issues/new"
             ],
+            "css": [
+                "styles.css"
+            ],
             "js": [
                 "content.js"
             ]
