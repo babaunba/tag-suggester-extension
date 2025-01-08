@@ -1,5 +1,7 @@
 console.log("Start");
 
+let suggestedLabels = [ "bug", "bug-1", "bug-2", "bug-3", "bug-4", "bug-5", "bug 1", "bug 1" ];
+
 function getIssueData() {
     const issueTitle = document.getElementById('issue_title')?.value || '';
     const issueBody = document.getElementById('issue_body')?.value || '';
@@ -23,6 +25,24 @@ function getSelectedLabels() {
     }
 
     return selectedLabels;
+}
+
+function selectLabel(label) {
+    const selectedLabels = getSelectedLabels();
+    if (selectedLabels.includes(label)) return;
+
+    const labelMenuItems = document.querySelectorAll("#labels-select-menu .js-filterable-issue-labels .select-menu-item");
+
+    for (const menuItem of labelMenuItems) {
+        const labelName = menuItem.getAttribute("data-prio-filter-value");
+
+        if (labelName === label) {
+            menuItem.click();
+            document.querySelector("#labels-select-menu summary").click()
+            document.querySelector("#labels-select-menu summary").click()
+            return;
+        }
+    }
 }
 
 function handleInputChange() {
@@ -56,12 +76,80 @@ function setupInputListeners() {
     console.log("Setup input listeners... [ok]");
 }
 
-window.addEventListener("load", () => {
-    console.log("Page loaded");
-    console.log("Setup ...");
-    setupInputListeners();
-    console.log("Setup ... [ok]");
+function createSuggestesLabelsContainer() {
+    const suggestedLabelsContainer = document.createElement("div");
+    suggestedLabelsContainer.setAttribute("class", "suggested-labels");
+    return suggestedLabelsContainer;
+}
 
-    const x = document.querySelectorAll('#labels-select-menu .select-menu-item');
-    console.log(x);
+function createSuggestedLabelItem(label) {
+    const item = document.createElement("div");
+    item.setAttribute("class", "suggested-labels__item");
+    item.innerText = label;
+    item.onclick = () => selectLabel(label);
+    return item;
+}
+
+function setLabels(container, labels) {
+    container.innerHTML = "";
+
+    for (const label of labels) {
+        const labelItem = createSuggestedLabelItem(label);
+        container.appendChild(labelItem);
+    }
+}
+
+function updateContainer(container, suggested, active) {
+    let suggestedNotActive = [];
+
+    for (const label of suggested) {
+        if (!active.includes(label)) {
+            suggestedNotActive.push(label);
+        }
+    }
+
+    setLabels(container, suggestedNotActive);
+}
+
+function insertContainer(container) {
+    const labelsSidebar = document.querySelector('.js-issue-sidebar-form[data-cache-name="labels"]');
+    const lastElement = labelsSidebar.children[labelsSidebar.children.length - 1];
+    labelsSidebar.insertBefore(container, lastElement);
+}
+
+const callback = (mutationsList, observer) => {
+    console.log("Something changed");
+
+    const container = document.getElementById("suggested-labels-container");
+    if (container) return;
+
+    console.log("Container was deleted!");
+
+    const labelsContainer = createSuggestesLabelsContainer();
+    labelsContainer.id = "suggested-labels-container";
+    const activeLabel = getSelectedLabels();
+
+    updateContainer(labelsContainer, suggestedLabels, activeLabel);
+    insertContainer(labelsContainer);
+  };
+
+
+  const observer = new MutationObserver(callback);
+  
+  window.addEventListener("load", () => {
+      console.log("Page loaded");
+      console.log("Setup ...");
+      setupInputListeners();
+      console.log("Setup ... [ok]");
+      
+      const labelsContainer = createSuggestesLabelsContainer();
+      labelsContainer.id = "suggested-labels-container";
+      const activeLabel = getSelectedLabels();
+
+      setLabels(labelsContainer, suggestedLabels);
+      updateContainer(labelsContainer, suggestedLabels, activeLabel);
+      insertContainer(labelsContainer);
+
+      const labelsSidebar = document.querySelector('#new_issue');
+      observer.observe(labelsSidebar, { childList: true, subtree: true });
 });

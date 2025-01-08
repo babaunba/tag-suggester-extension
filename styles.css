@@ -1,0 +1,21 @@
+.suggested-labels {
+    /* display: flex; */
+    /* align-items: flex-start; */
+    padding: 4px 0;
+    margin: 4px 0;
+}
+
+.suggested-labels__item {
+    border: 2px solid rgba(0, 123, 255, 1);
+    background-color: rgba(0, 123, 255, 0.2);
+    border-radius: 60px;
+    padding: 1px 7px;
+    color: rgba(0, 123, 255, 1);
+    margin: 2px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.suggested-labels__item:hover {
+    background-color: rgba(0, 123, 255, 0.4);
+}
