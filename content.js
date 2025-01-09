@@ -4,7 +4,7 @@ const SUGGESTED_LABELS_CONTAINER_ID = "suggested-labels-container";
 
 /* Global state */
 
-let suggestedLabels = ["bug", "documentation"];
+let suggestedLabels = [];
 
 /* Labels module */
 
@@ -164,4 +164,19 @@ window.addEventListener("load", () => {
     const labelsSidebar = document.querySelector('#new_issue');
     observer.observe(labelsSidebar, { childList: true, subtree: true });
     console.log("Init container ... [ok]");
+
+    chrome.runtime.sendMessage(
+        {
+            action: "api.GetLabels",
+            data: {
+                title: "a",
+                description: "b",
+            }
+        },
+        labels => {
+            console.log("Got suggested labels: ", labels);
+            suggestedLabels = labels;
+            initSuggestedLabelsContainer();
+        },
+    );
 });
