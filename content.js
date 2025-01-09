@@ -1,10 +1,37 @@
+/* API Module */
+
+class BackendAPI {
+    async getPredictedLabels(issueInfo) {
+        return this.#runBackgroundAction("api.GetLabels", issueInfo);
+    }
+
+    async #runBackgroundAction(actionId, data) {
+        return await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage(
+                {
+                    action: actionId,
+                    data: data,
+                },
+                (response) => {
+                    if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                    } else {
+                        resolve(response);
+                    }
+                }
+            );
+        });
+    }
+};
+
 /* Constants */
 
 const SUGGESTED_LABELS_CONTAINER_ID = "suggested-labels-container";
 
 /* Global state */
 
-let suggestedLabels = ["bug", "documentation"];
+let suggestedLabels = [];
+const api = new BackendAPI();
 
 /* Labels module */
 
@@ -33,10 +60,10 @@ function createSuggestedLabelsContainer(names, callback) {
 
 function getIssueData() {
     const issueTitle = document.getElementById('issue_title')?.value || '';
-    const issueBody = document.getElementById('issue_body')?.value || '';
+    const issueDescription = document.getElementById('issue_body')?.value || '';
     return {
         title: issueTitle,
-        body: issueBody
+        description: issueDescription,
     };
 }
 
@@ -88,7 +115,14 @@ function selectLabel(name) {
 
 function handleInputChange() {
     const issueData = getIssueData();
-    console.log("Issue Data:", issueData);
+    console.log("Updated issue data:", issueData);
+
+    api.getPredictedLabels(issueData)
+        .then((labels) => {
+            console.log("Updated labels:", labels);
+            suggestedLabels = labels;
+            initSuggestedLabelsContainer();
+        })
 }
 
 function debounce(func, delay) {
@@ -137,6 +171,11 @@ function insertContainer(container) {
 }
 
 function initSuggestedLabelsContainer() {
+    const existsContainer = document.getElementById(SUGGESTED_LABELS_CONTAINER_ID);
+    if (existsContainer) {
+        existsContainer.remove();
+    }
+
     const labels = getSuggestedNotActiveLabels();
     const container = createSuggestedLabelsContainer(labels, selectLabel);
     container.id = SUGGESTED_LABELS_CONTAINER_ID;
