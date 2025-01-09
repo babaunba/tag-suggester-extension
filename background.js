@@ -1,3 +1,4 @@
+import { settings } from "./settings.js";
 import { BackendAPI } from "./api.js"
 
 /* Init */
@@ -5,7 +6,7 @@ import { BackendAPI } from "./api.js"
 console.log("[background] Init ...");
 
 console.log("[background] Init API ...");
-const api = new BackendAPI("http://localhost:8000")
+const api = new BackendAPI(settings.apiUrl)
 console.log("[background] Init API ... [ok]");
 
 console.log("[background] Init ... [ok]");
