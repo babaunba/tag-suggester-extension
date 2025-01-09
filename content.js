@@ -137,6 +137,11 @@ function insertContainer(container) {
 }
 
 function initSuggestedLabelsContainer() {
+    const existsContainer = document.getElementById(SUGGESTED_LABELS_CONTAINER_ID);
+    if (existsContainer) {
+        existsContainer.remove();
+    }
+
     const labels = getSuggestedNotActiveLabels();
     const container = createSuggestedLabelsContainer(labels, selectLabel);
     container.id = SUGGESTED_LABELS_CONTAINER_ID;
