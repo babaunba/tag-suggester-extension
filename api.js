@@ -4,7 +4,7 @@ export class BackendAPI {
     }
 
     async getPredictedLabels(issueDescription) {
-        return await this.#sendPostRequest("get-tags", "POST", issueDescription);
+        return await this.#sendPostRequest("get-labels", "POST", issueDescription);
     }
 
     async #sendPostRequest(endpoint, method, payload) {
