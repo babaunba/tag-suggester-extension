@@ -1,3 +1,3 @@
 export const settings = {
-    apiUrl: "http://localhost:8000",  // url to backend API
+    apiUrl: "http://45.155.205.163:42042",  // url to backend API
 };

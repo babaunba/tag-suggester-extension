@@ -63,7 +63,9 @@ function getIssueData() {
     const issueDescription = document.getElementById('issue_body')?.value || '';
     return {
         title: issueTitle,
-        description: issueDescription,
+        body: issueDescription,
+        labels: [],
+        creator: "Nifacy",
     };
 }
 
@@ -119,8 +121,8 @@ function handleInputChange() {
 
     api.getPredictedLabels(issueData)
         .then((labels) => {
-            console.log("Updated labels:", labels);
-            suggestedLabels = labels;
+            suggestedLabels = labels["labels"];
+            console.log("Updated labels:", suggestedLabels);
             initSuggestedLabelsContainer();
         })
 }
